@@ -1,124 +1,140 @@
-'use client'
+'use client';
 
-import {useEffect, useRef, useState} from 'react'
-import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
-import {Eraser, Paintbrush} from 'lucide-react'
-import {cn} from "@/lib/utils"
-import {analyzeDrawing} from "@/app/actions";
-
+import { useEffect, useRef, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Eraser, Paintbrush } from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { analyzeDrawing } from "@/app/actions";
 
 export function DrawingBoard() {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [isDrawing, setIsDrawing] = useState(false)
-    const [color, setColor] = useState('#FFFFFF')
-    const [isEraser, setIsEraser] = useState(false)
-    const [prompt, setPrompt] = useState('')
-    const [response, setResponse] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [color, setColor] = useState('#FFFFFF');
+    const [isEraser, setIsEraser] = useState(false);
+    const [prompt, setPrompt] = useState('');
+    const [response, setResponse] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const canvas = canvasRef.current
-        if (!canvas) return
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
         const updateCanvasSize = () => {
-            canvas.width = window.innerWidth
-            canvas.height = window.innerHeight
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
-            const ctx = canvas.getContext('2d')
-            if (!ctx) return
-            ctx.fillStyle = '#000000'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-        }
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        };
 
-        updateCanvasSize()
-        window.addEventListener('resize', updateCanvasSize)
+        updateCanvasSize();
+        window.addEventListener('resize', updateCanvasSize);
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-        ctx.strokeStyle = color
-        ctx.lineWidth = 5
-        ctx.lineCap = 'round'
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
 
-        return () => window.removeEventListener('resize', updateCanvasSize)
-    }, [])
+        return () => window.removeEventListener('resize', updateCanvasSize);
+    }, [color]);
 
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        const canvas = canvasRef.current
-        if (!canvas) return
+    const startDrawing = (x: number, y: number) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-        const rect = canvas.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        setIsDrawing(true);
+    };
 
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        setIsDrawing(true)
-    }
+    const draw = (x: number, y: number) => {
+        if (!isDrawing) return;
 
-    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isDrawing) return
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        const canvas = canvasRef.current
-        if (!canvas) return
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-
-        const rect = canvas.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-
-        ctx.strokeStyle = isEraser ? '#000000' : color
-        ctx.lineTo(x, y)
-        ctx.stroke()
-    }
+        ctx.strokeStyle = isEraser ? '#000000' : color;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    };
 
     const stopDrawing = () => {
-        setIsDrawing(false)
-    }
+        setIsDrawing(false);
+    };
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        startDrawing(e.clientX - rect.left, e.clientY - rect.top);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        draw(e.clientX - rect.left, e.clientY - rect.top);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const touch = e.touches[0];
+        startDrawing(touch.clientX - rect.left, touch.clientY - rect.top);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const touch = e.touches[0];
+        draw(touch.clientX - rect.left, touch.clientY - rect.top);
+    };
 
     const handleSubmit = async () => {
-        if (!prompt) return
+        if (!prompt) return;
 
-        const canvas = canvasRef.current
-        if (!canvas) return
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-            const imageData = canvas.toDataURL('image/png')
-            const result = await analyzeDrawing(imageData, prompt)
-            setResponse(result.text)
+            const imageData = canvas.toDataURL('image/png');
+            const result = await analyzeDrawing(imageData, prompt);
+            setResponse(result.text);
         } catch (error) {
-            console.error('Error:', error)
-            setResponse('Failed to analyze drawing. Please try again.')
+            console.error('Error:', error);
+            setResponse('Failed to analyze drawing. Please try again.');
         }
-        setIsLoading(false)
-    }
+        setIsLoading(false);
+    };
 
     const clearCanvas = () => {
-        const canvas = canvasRef.current
-        if (!canvas) return
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-        ctx.fillStyle = '#000000'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-        setResponse('')
-    }
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        setResponse('');
+    };
 
     return (
         <div className="relative h-screen w-screen overflow-hidden bg-black">
             <canvas
                 ref={canvasRef}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={stopDrawing}
                 className="cursor-crosshair"
             />
 
@@ -129,14 +145,14 @@ export function DrawingBoard() {
                 <div className="relative w-9 h-9 flex-shrink-0">
                     <button
                         className="absolute inset-0 rounded-md border-2 border-zinc-700 overflow-hidden"
-                        style={{backgroundColor: color}}
+                        style={{ backgroundColor: color }}
                     >
                         <input
                             type="color"
                             value={color}
                             onChange={(e) => {
-                                setColor(e.target.value)
-                                setIsEraser(false)
+                                setColor(e.target.value);
+                                setIsEraser(false);
                             }}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
@@ -154,7 +170,7 @@ export function DrawingBoard() {
                             isEraser && "bg-zinc-800 text-white"
                         )}
                     >
-                        <Eraser className="w-4 h-4"/>
+                        <Eraser className="w-4 h-4" />
                         Eraser
                     </Button>
                     <Button
@@ -166,7 +182,7 @@ export function DrawingBoard() {
                             !isEraser && "bg-zinc-800 text-white"
                         )}
                     >
-                        <Paintbrush className="w-4 h-4"/>
+                        <Paintbrush className="w-4 h-4" />
                         Brush
                     </Button>
                     <Button
@@ -205,6 +221,5 @@ export function DrawingBoard() {
                 )}
             </div>
         </div>
-    )
+    );
 }
-
