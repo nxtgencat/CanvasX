@@ -135,13 +135,11 @@ export function DrawingBoard() {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={stopDrawing}
-                className="cursor-crosshair touch-none"
-                style={{ touchAction: 'none' }}  // Prevent scrolling on touch devices
+                className="cursor-crosshair"
             />
 
             {/* Top Controls */}
-            <div
-                className="absolute top-4 left-1/2 -translate-x-1/2 p-3 flex items-center gap-3 bg-zinc-900 rounded-lg shadow-lg">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 p-3 flex items-center gap-3 bg-zinc-900 rounded-lg shadow-lg">
                 {/* Color Picker Button */}
                 <div className="relative w-9 h-9 flex-shrink-0">
                     <button
@@ -198,8 +196,7 @@ export function DrawingBoard() {
             </div>
 
             {/* Bottom Controls */}
-            <div
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl p-3 bg-zinc-900 rounded-lg shadow-lg">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl p-3 bg-zinc-900 rounded-lg shadow-lg">
                 <div className="flex gap-3">
                     <Input
                         value={prompt}
