@@ -21,8 +21,9 @@ export function DrawingBoard() {
         if (!canvas) return;
 
         const updateCanvasSize = () => {
+            // Use window.innerWidth and window.visualViewport.height for more accurate mobile sizing
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.height = window.visualViewport?.height || window.innerHeight;
 
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
@@ -31,7 +32,10 @@ export function DrawingBoard() {
         };
 
         updateCanvasSize();
+
+        // Listen to both resize and visualViewport resize events
         window.addEventListener('resize', updateCanvasSize);
+        window.visualViewport?.addEventListener('resize', updateCanvasSize);
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -39,7 +43,10 @@ export function DrawingBoard() {
         ctx.lineWidth = 5;
         ctx.lineCap = 'round';
 
-        return () => window.removeEventListener('resize', updateCanvasSize);
+        return () => {
+            window.removeEventListener('resize', updateCanvasSize);
+            window.visualViewport?.removeEventListener('resize', updateCanvasSize);
+        };
     }, [color]);
 
     const startDrawing = (x: number, y: number) => {
@@ -125,7 +132,7 @@ export function DrawingBoard() {
     };
 
     return (
-        <div className="relative h-screen w-screen overflow-hidden bg-black">
+        <div className="fixed inset-0 overflow-hidden bg-black">
             <canvas
                 ref={canvasRef}
                 onMouseDown={handleMouseDown}
@@ -135,11 +142,12 @@ export function DrawingBoard() {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={stopDrawing}
-                className="cursor-crosshair"
+                className="touch-none cursor-crosshair"
             />
 
             {/* Top Controls */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 p-3 flex items-center gap-3 bg-zinc-900 rounded-lg shadow-lg">
+            <div
+                className="absolute top-4 left-1/2 -translate-x-1/2 p-3 flex items-center gap-3 bg-zinc-900 rounded-lg shadow-lg">
                 {/* Color Picker Button */}
                 <div className="relative w-9 h-9 flex-shrink-0">
                     <button
@@ -196,7 +204,8 @@ export function DrawingBoard() {
             </div>
 
             {/* Bottom Controls */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl p-3 bg-zinc-900 rounded-lg shadow-lg">
+            <div
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl p-3 bg-zinc-900 rounded-lg shadow-lg">
                 <div className="flex gap-3">
                     <Input
                         value={prompt}
