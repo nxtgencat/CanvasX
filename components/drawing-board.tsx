@@ -135,7 +135,8 @@ export function DrawingBoard() {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={stopDrawing}
-                className="cursor-crosshair"
+                className="cursor-crosshair touch-none"
+                style={{ touchAction: 'none' }}  // Prevent scrolling on touch devices
             />
 
             {/* Top Controls */}
