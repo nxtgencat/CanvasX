@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function analyzeDrawing(imageBase64: string, prompt: string) {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         // Remove data URL prefix and create proper binary data
         const base64Data = imageBase64.split(',')[1];
